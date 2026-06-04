@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم مبيعات Olist الاحترافية</title>
+    <!-- Tailwind CSS للـ Styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js للرسومات البيانية -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- PapaParse لقراءة ملف الـ CSV بكفاءة عالية وسرعة فائقة -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
@@ -15,46 +18,57 @@
 <body class="text-gray-800">
 
     <div class="flex flex-col min-h-screen">
+        <!-- الهيدر الشريطي -->
         <header class="bg-indigo-900 text-white shadow-lg p-5 flex justify-between items-center flex-wrap gap-4">
             <div>
                 <h1 class="text-2xl font-bold">لوحة تحكم أداء المبيعات والتوصيل (Olist)</h1>
                 <p class="text-sm text-indigo-200 mt-1">تحليل ذكي ومباشر لبيانات التجارة الإلكترونية</p>
             </div>
-            <div class="bg-indigo-800 p-2 rounded-lg border border-indigo-700 flex items-center gap-3">
+            <!-- زر رفع الملف اليدوي الأنيق -->
+            <div class="bg-indigo-800 p-2 rounded-lg border border-indigo-700 flex items-center gap-3 shadow-inner">
                 <label class="block text-sm font-medium text-indigo-100">اختر ملف CSV للتحليل:</label>
-                <input type="file" id="csvFileInput" accept=".csv" class="text-sm text-gray-350
-                    file:mr-4 file:py-2 file:px-4
+                <input type="file" id="csvFileInput" accept=".csv" class="text-sm text-gray-300
+                    file:mr-4 file:py-1.5 file:px-4
                     file:rounded-md file:border-0
                     file:text-sm file:font-semibold
                     file:bg-indigo-600 file:text-white
-                    hover:file:bg-indigo-700 cursor-pointer"/>
+                    hover:file:bg-indigo-700 cursor-pointer transition-colors"/>
             </div>
         </header>
 
+        <!-- محتوى لوحة التحكم -->
         <main class="flex-grow p-6 max-w-7xl mx-auto w-full">
             
-            <div id="uploadAlert" class="bg-blue-50 border-r-4 border-blue-500 p-4 mb-6 rounded shadow-sm">
+            <!-- رسالة تنبيهية تظهر أول ما يفتح الموقع لتوجيه المستخدم -->
+            <div id="uploadAlert" class="bg-indigo-50 border-r-4 border-indigo-500 p-4 mb-6 rounded-xl shadow-sm animate-pulse">
                 <div class="flex items-center">
-                    <p class="text-blue-700 font-medium">يرجى رفع ملف <code class="bg-blue-100 px-1 rounded">olist_master_cleaned.csv</code> من أعلى اليسار لبدء معالجة البيانات وتحديث الـ Dashboard تلقائياً.</p>
+                    <p class="text-indigo-800 font-medium text-sm md:text-base">
+                        📬 <strong>أهلاً بك!</strong> يرجى الضغط على زر <span class="bg-indigo-200 px-2 py-0.5 rounded text-indigo-900 font-bold">اختر ملف CSV للتحليل</span> أعلى اليسار واختيار ملف البيانات الخاص بك لتشغيل لوحة التحكم فوراً وبشكل آمن تماماً على جهازك.
+                    </p>
                 </div>
             </div>
 
+            <!-- بطاقات المؤشرات الرئيسية (KPIs) -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <!-- إجمالي الإيرادات -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
                     <span class="text-gray-400 font-medium text-sm">إجمالي الإيرادات</span>
                     <h3 id="kpiSales" class="text-2xl font-bold text-gray-900 mt-2">$0.00</h3>
                     <span class="text-emerald-500 text-xs font-semibold mt-2">📊 إجمالي قيمة المبيعات</span>
                 </div>
+                <!-- عدد الطلبات الناجحة -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
                     <span class="text-gray-400 font-medium text-sm">عدد الطلبات الناجحة</span>
                     <h3 id="kpiOrders" class="text-2xl font-bold text-gray-900 mt-2">0</h3>
                     <span class="text-indigo-500 text-xs font-semibold mt-2">📦 طلبات مكتملة وقيد المعالجة</span>
                 </div>
+                <!-- متوسط قيمة الطلب -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
                     <span class="text-gray-400 font-medium text-sm">متوسط قيمة الطلب (AOV)</span>
                     <h3 id="kpiAOV" class="text-2xl font-bold text-gray-900 mt-2">$0.00</h3>
                     <span class="text-amber-500 text-xs font-semibold mt-2">💡 معدل سلة الشراء للعميل</span>
                 </div>
+                <!-- متوسط مدة التوصيل -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
                     <span class="text-gray-400 font-medium text-sm">متوسط مدة التوصيل</span>
                     <h3 id="kpiDelivery" class="text-2xl font-bold text-gray-900 mt-2">0 يوم</h3>
@@ -62,13 +76,16 @@
                 </div>
             </div>
 
+            <!-- قسم الرسومات البيانية -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- خط اتجاه المبيعات الشهري -->
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 lg:col-span-2">
                     <h3 class="text-lg font-bold text-gray-800 mb-4">📈 اتجاه المبيعات الشهري (Sales Trend)</h3>
                     <div class="relative h-80">
                         <canvas id="salesTrendChart"></canvas>
                     </div>
                 </div>
+                <!-- طرق الدفع المفضلة -->
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="text-lg font-bold text-gray-800 mb-4">💳 طرق الدفع المفضلة</h3>
                     <div class="relative h-80 flex justify-center">
@@ -78,12 +95,14 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- أعلى فئات المنتجات تحقيقاً للعوائد -->
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="text-lg font-bold text-gray-800 mb-4">🏆 أعلى 5 فئات منتجات تحقيقاً للعائدات</h3>
                     <div class="relative h-80">
                         <canvas id="topCategoriesChart"></canvas>
                     </div>
                 </div>
+                <!-- أداء المبيعات حسب أيام الأسبوع -->
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="text-lg font-bold text-gray-800 mb-4">📅 أداء المبيعات حسب أيام الأسبوع</h3>
                     <div class="relative h-80">
@@ -94,76 +113,74 @@
 
         </main>
 
+        <!-- الفوتر -->
         <footer class="bg-gray-900 text-gray-400 text-center py-4 text-sm mt-10 border-t border-gray-800">
             لوحة تحكم احترافية مدعومة بـ Chart.js & Tailwind CSS © 2026
         </footer>
     </div>
 
     <script>
-        let charts = {}; // لتخزين كائنات الرسومات البيانية لتحديثها لاحقاً
+        let charts = {};
 
+        // مراقبة واكتشاف رفع الملف يدوياً
         document.getElementById('csvFileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
-            // إخفاء رسالة التنبيه وإظهار حالة التحميل
-            document.getElementById('uploadAlert').style.display = 'none';
+            // إخفاء رسالة التنبيه الزرقاء بمجرد بدء التحميل
+            const alertBox = document.getElementById('uploadAlert');
+            alertBox.className = "bg-emerald-50 border-r-4 border-emerald-500 p-4 mb-6 rounded-xl shadow-sm";
+            alertBox.innerHTML = "<p class='text-emerald-700 font-medium text-sm animate-pulse'>⚡ جاري معالجة مصفوفات البيانات الكبيرة ورسم المخططات البيانية فائق السرعة...</p>";
 
-            // استخدام PapaParse لقراءة الملف بصيغة كائنات JSON
+            // تشغيل محرك PapaParse لقراءة الملف محلياً
             Papa.parse(file, {
                 header: true,
                 dynamicTyping: true,
                 skipEmptyLines: true,
                 complete: function(results) {
                     processOlistData(results.data);
+                    alertBox.style.display = 'none'; // إخفاء صندوق التنبيه تماماً بعد نجاح العملية
                 },
                 error: function(err) {
-                    alert('حدث خطأ أثناء قراءة الملف، تأكد من سلامة صيغة الـ CSV');
+                    alertBox.className = "bg-rose-50 border-r-4 border-rose-500 p-4 mb-6 rounded-xl shadow-sm";
+                    alertBox.innerHTML = "<p class='text-rose-700 font-medium text-sm'>❌ حدث خطأ أثناء قراءة ملف الـ CSV. تأكد من سلامة الملف وامتداده.</p>";
                     console.error(err);
                 }
             });
         });
 
         function processOlistData(data) {
-            // 1. حساب الـ KPIs الرئيسية
             let totalSales = 0;
             let totalOrders = data.length;
             let totalDeliveryDays = 0;
             let deliveryCount = 0;
 
-            // كائنات تجميع البيانات للرسومات
             let monthlySales = {};
             let paymentTypes = {};
             let categorySales = {};
             let weekdaySales = { 'Monday': 0, 'Tuesday': 0, 'Wednesday': 0, 'Thursday': 0, 'Friday': 0, 'Saturday': 0, 'Sunday': 0 };
 
             data.forEach(row => {
-                // تجميع المبيعات (اعتماداً على سعر المنتج المسمى price أو payment_value)
                 const price = row.price || 0;
                 totalSales += price;
 
-                // تجميع أيام التوصيل
                 if (row.delivery_days !== null && !isNaN(row.delivery_days)) {
                     totalDeliveryDays += row.delivery_days;
                     deliveryCount++;
                 }
 
-                // التجميع حسب الشهر (month_name)
                 if (row.month_name) {
                     monthlySales[row.month_name] = (monthlySales[row.month_name] || 0) + price;
                 }
 
-                // التجميع حسب طريقة الدفع
                 if (row.payment_type) {
                     paymentTypes[row.payment_type] = (paymentTypes[row.payment_type] || 0) + 1;
                 }
 
-                // التجميع حسب فئة المنتج بالإنجليزية
                 if (row.product_category_name_english) {
                     categorySales[row.product_category_name_english] = (categorySales[row.product_category_name_english] || 0) + price;
                 }
 
-                // التجميع حسب أيام الأسبوع
                 if (row.weekday && weekdaySales.hasOwnProperty(row.weekday)) {
                     weekdaySales[row.weekday] += price;
                 }
@@ -172,28 +189,23 @@
             const avgAOV = totalOrders > 0 ? (totalSales / totalOrders) : 0;
             const avgDelivery = deliveryCount > 0 ? (totalDeliveryDays / deliveryCount) : 0;
 
-            // تحديث واجهة المستخدم بالأرقام المحسوبة
+            // تحديث المؤشرات بالأرقام المحسوبة
             document.getElementById('kpiSales').innerText = `$${totalSales.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             document.getElementById('kpiOrders').innerText = totalOrders.toLocaleString();
             document.getElementById('kpiAOV').innerText = `$${avgAOV.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             document.getElementById('kpiDelivery').innerText = `${avgDelivery.toFixed(1)} يوم`;
 
-            // 2. بناء وتحديث الرسومات البيانية
+            // بناء الرسوم البيانية التفاعلية الجديدة
             updateSalesTrendChart(monthlySales);
             updatePaymentTypeChart(paymentTypes);
             updateTopCategoriesChart(categorySales);
             updateWeekdaySalesChart(weekdaySales);
         }
 
-        // --- دالات بناء الرسوم البيانية المحترفة ---
-
         function updateSalesTrendChart(monthlySalesData) {
-            // ترتيب الأشهر منطقياً لو وُجدت كاملة، أو أخذها كما هي
             const labels = Object.keys(monthlySalesData);
             const data = Object.values(monthlySalesData);
-
             destroyChart('salesTrend');
-
             const ctx = document.getElementById('salesTrendChart').getContext('2d');
             charts['salesTrend'] = new Chart(ctx, {
                 type: 'line',
@@ -230,7 +242,6 @@
         }
 
         function updateTopCategoriesChart(categoryData) {
-            // فرز أعلى 5 فئات مبيعاً
             const sortedCategories = Object.entries(categoryData)
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 5);
@@ -248,7 +259,7 @@
                     }]
                 },
                 options: {
-                    indexAxis: 'y', // لجعل الرسم البياني أفقي احترافي
+                    indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false
                 }
@@ -256,7 +267,6 @@
         }
 
         function updateWeekdaySalesChart(weekdayData) {
-            // خريطة ترجمة الأيام للعربية للعرض الاحترافي
             const daysAr = { 'Monday': 'الإثنين', 'Tuesday': 'الثلاثاء', 'Wednesday': 'الأربعاء', 'Thursday': 'الخميس', 'Friday': 'الجمعة', 'Saturday': 'السبت', 'Sunday': 'الأحد' };
             const labels = Object.keys(weekdayData).map(day => daysAr[day] || day);
 
@@ -267,7 +277,7 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'حجم المبيعات حسب اليوم',
+                        label: 'حجم المبيعات ($)',
                         data: Object.values(weekdayData),
                         backgroundColor: '#f59e0b'
                     }]
@@ -276,11 +286,8 @@
             });
         }
 
-        // دالة لمنع تداخل الرسومات عند رفع ملف جديد
         function destroyChart(chartKey) {
-            if (charts[chartKey]) {
-                charts[chartKey].destroy();
-            }
+            if (charts[chartKey]) { charts[chartKey].destroy(); }
         }
     </script>
 </body>
