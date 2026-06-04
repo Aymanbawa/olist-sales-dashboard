@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم مبيعات Olist الاحترافية</title>
-    <!-- Tailwind CSS للـ Styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js للرسومات البيانية -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- PapaParse لقراءة ملف الـ CSV بكفاءة عالية -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
@@ -18,49 +15,40 @@
 <body class="text-gray-800">
 
     <div class="flex flex-col min-h-screen">
-        <!-- الهيدر -->
         <header class="bg-indigo-900 text-white shadow-lg p-5 flex justify-between items-center flex-wrap gap-4">
             <div>
-                <h1 class="text-2xl font-bold">لوحة تحكم أداء المبيعات والتوصيل (Olist)</h1>
+                <h1 class="text-2xl font-bold">لوحة تحكم أداء Mبيعات والتوصيل (Olist)</h1>
                 <p class="text-sm text-indigo-200 mt-1">تحليل ذكي ومباشر لبيانات التجارة الإلكترونية</p>
             </div>
-            <div class="text-xs bg-indigo-800 border border-indigo-700 px-3 py-1.5 rounded-lg text-indigo-100 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                محدث تلقائياً عبر المستودع
+            <div class="text-xs bg-indigo-800 border border-indigo-700 px-3 py-1.5 rounded-lg text-indigo-100">
+                🔄 تحديث تلقائي ومباشر عبر السحابة
             </div>
         </header>
 
-        <!-- محتوى لوحة التحكم -->
         <main class="flex-grow p-6 max-w-7xl mx-auto w-full">
             
-            <!-- رسالة حالة تحميل البيانات التلقائية -->
             <div id="uploadAlert" class="bg-amber-50 border-r-4 border-amber-500 p-4 mb-6 rounded shadow-sm">
                 <div class="flex items-center">
-                    <p class="text-amber-700 font-medium">⏳ جاري جلب وتحليل بيانات Olist مباشرة من المستودع... يرجى الانتظار ثوانٍ معدودة لتجهيز الرسوم البيانية.</p>
+                    <p class="text-amber-700 font-medium">⏳ جاري تحميل وتحليل بيانات Olist تلقائياً من Google Drive... يرجى الانتظار ثوانٍ معدودة.</p>
                 </div>
             </div>
 
-            <!-- بطاقات المؤشرات الرئيسية (KPIs) -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                <!-- إجمالي المبيعات -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
                     <span class="text-gray-400 font-medium text-sm">إجمالي الإيرادات</span>
                     <h3 id="kpiSales" class="text-2xl font-bold text-gray-900 mt-2">$0.00</h3>
                     <span class="text-emerald-500 text-xs font-semibold mt-2">📊 إجمالي قيمة المبيعات</span>
                 </div>
-                <!-- إجمالي الطلبات -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
                     <span class="text-gray-400 font-medium text-sm">عدد الطلبات الناجحة</span>
                     <h3 id="kpiOrders" class="text-2xl font-bold text-gray-900 mt-2">0</h3>
                     <span class="text-indigo-500 text-xs font-semibold mt-2">📦 طلبات مكتملة وقيد المعالجة</span>
                 </div>
-                <!-- متوسط قيمة الطلب -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
                     <span class="text-gray-400 font-medium text-sm">متوسط قيمة الطلب (AOV)</span>
                     <h3 id="kpiAOV" class="text-2xl font-bold text-gray-900 mt-2">$0.00</h3>
                     <span class="text-amber-500 text-xs font-semibold mt-2">💡 معدل سلة الشراء للعميل</span>
                 </div>
-                <!-- متوسط أيام التوصيل -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
                     <span class="text-gray-400 font-medium text-sm">متوسط مدة التوصيل</span>
                     <h3 id="kpiDelivery" class="text-2xl font-bold text-gray-900 mt-2">0 يوم</h3>
@@ -68,16 +56,13 @@
                 </div>
             </div>
 
-            <!-- قسم الرسومات البيانية -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <!-- خط المبيعات الشهري -->
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 lg:col-span-2">
                     <h3 class="text-lg font-bold text-gray-800 mb-4">📈 اتجاه المبيعات الشهري (Sales Trend)</h3>
                     <div class="relative h-80">
                         <canvas id="salesTrendChart"></canvas>
                     </div>
                 </div>
-                <!-- توزيع طرق الدفع -->
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="text-lg font-bold text-gray-800 mb-4">💳 طرق الدفع المفضلة</h3>
                     <div class="relative h-80 flex justify-center">
@@ -87,14 +72,12 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- أعلى الفئات مبيعاً -->
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="text-lg font-bold text-gray-800 mb-4">🏆 أعلى 5 فئات منتجات تحقيقاً للعائدات</h3>
                     <div class="relative h-80">
                         <canvas id="topCategoriesChart"></canvas>
                     </div>
                 </div>
-                <!-- المبيعات حسب أيام الأسبوع -->
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="text-lg font-bold text-gray-800 mb-4">📅 أداء المبيعات حسب أيام الأسبوع</h3>
                     <div class="relative h-80">
@@ -105,33 +88,31 @@
 
         </main>
 
-        <!-- الفوتر -->
         <footer class="bg-gray-900 text-gray-400 text-center py-4 text-sm mt-10 border-t border-gray-800">
             لوحة تحكم احترافية مدعومة بـ Chart.js & Tailwind CSS © 2026
         </footer>
     </div>
 
-    <!-- كود الجافاسكربت الخاص بقراءة ملف الـ CSV المحلي من المستودع -->
     <script>
         let charts = {};
 
-        // قراءة ملف البيانات تلقائياً لأنه موجود في نفس مجلد الـ HTML على المستودع
+        // جلب البيانات تلقائياً فور تحميل الصفحة باستخدام رابط التحميل المباشر للملف الخاص بك
         window.addEventListener('DOMContentLoaded', (event) => {
-            const relativeCsvPath = "olist_master_cleaned.csv";
+            const directCsvUrl = "https://docs.google.com/uc?export=download&id=1Nlw0LYlTT2mbLSGMrgV6FqbFSUMnO_PW";
             const alertBox = document.getElementById('uploadAlert');
 
-            Papa.parse(relativeCsvPath, {
+            Papa.parse(directCsvUrl, {
                 download: true,
                 header: true,
                 dynamicTyping: true,
                 skipEmptyLines: true,
                 complete: function(results) {
                     processOlistData(results.data);
-                    alertBox.style.display = 'none'; // إخفاء الرسالة بعد اكتمال التحميل
+                    alertBox.style.display = 'none'; // إخفاء الرسالة بنجاح التحميل
                 },
                 error: function(err) {
                     alertBox.className = "bg-rose-50 border-r-4 border-rose-500 p-4 mb-6 rounded shadow-sm";
-                    alertBox.innerHTML = "<p class='text-rose-700 font-medium'>❌ فشل العثور على ملف البيانات. يرجى التأكد من رفع ملف <code class='bg-rose-100 px-1 rounded'>olist_master_cleaned.csv</code> داخل المستودع بجانب هذا الملف مباشرة وبنفس الاسم تماماً.</p>";
+                    alertBox.innerHTML = "<p class='text-rose-700 font-medium'>❌ فشل تحميل البيانات تلقائياً. تأكد من ضبط صلاحية مشاركة الملف في Google Drive لـ (Anyone with the link / أي شخص لديه الرابط).</p>";
                     console.error(err);
                 }
             });
