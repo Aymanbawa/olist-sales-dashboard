@@ -17,7 +17,7 @@
     <div class="flex flex-col min-h-screen">
         <header class="bg-indigo-900 text-white shadow-lg p-5 flex justify-between items-center flex-wrap gap-4">
             <div>
-                <h1 class="text-2xl font-bold">لوحة تحكم أداء Mبيعات والتوصيل (Olist)</h1>
+                <h1 class="text-2xl font-bold">لوحة تحكم أداء المبيعات والتوصيل (Olist)</h1>
                 <p class="text-sm text-indigo-200 mt-1">تحليل ذكي ومباشر لبيانات التجارة الإلكترونية</p>
             </div>
             <div class="text-xs bg-indigo-800 border border-indigo-700 px-3 py-1.5 rounded-lg text-indigo-100">
@@ -96,9 +96,10 @@
     <script>
         let charts = {};
 
-        // جلب البيانات تلقائياً فور تحميل الصفحة باستخدام رابط التحميل المباشر للملف الخاص بك
+        // جلب البيانات تلقائياً فور تحميل الصفحة باستخدام رابط التصدير المباشر للملف
         window.addEventListener('DOMContentLoaded', (event) => {
-            const directCsvUrl = "https://drive.google.com/file/d/1E9hSCInrm4AYN-rDjRIsVkvF0OOSXaSl/view?usp=sharing";
+            // تحويل الرابط إلى رابط تحميل مباشر بصيغة CSV لتعمل مكتبة PapaParse بشكل سليم
+            const directCsvUrl = "https://docs.google.com/spreadsheets/d/1E9hSCInrm4AYN-rDjRIsVkvF0OOSXaSl/export?format=csv";
             const alertBox = document.getElementById('uploadAlert');
 
             Papa.parse(directCsvUrl, {
