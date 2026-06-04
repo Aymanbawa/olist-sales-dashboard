@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم مبيعات Olist الاحترافية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+        body { font-family: 'Tajawal', sans-serif; background-color: #f3f4f6; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="flex flex-col min-h-screen">
+        <header class="bg-indigo-900 text-white shadow-lg p-5 flex justify-between items-center flex-wrap gap-4">
+            <div>
+                <h1 class="text-2xl font-bold">لوحة تحكم أداء Mبيعات والتوصيل (Olist)</h1>
+                <p class="text-sm text-indigo-200 mt-1">تحليل ذكي ومباشر لبيانات التجارة الإلكترونية</p>
+            </div>
+            <div class="text-xs bg-indigo-800 border border-indigo-700 px-3 py-1.5 rounded-lg text-indigo-100">
+                🔄 تحديث تلقائي ومباشر عبر السحابة
+            </div>
+        </header>
+
+        <main class="flex-grow p-6 max-w-7xl mx-auto w-full">
+            
+            <div id="uploadAlert" class="bg-amber-50 border-r-4 border-amber-500 p-4 mb-6 rounded shadow-sm">
+                <div class="flex items-center">
+                    <p class="text-amber-700 font-medium">⏳ جاري تحميل وتحليل بيانات Olist تلقائياً من Google Drive... يرجى الانتظار ثوانٍ معدودة.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                    <span class="text-gray-400 font-medium text-sm">إجمالي الإيرادات</span>
+                    <h3 id="kpiSales" class="text-2xl font-bold text-gray-900 mt-2">$0.00</h3>
+                    <span class="text-emerald-500 text-xs font-semibold mt-2">📊 إجمالي قيمة المبيعات</span>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                    <span class="text-gray-400 font-medium text-sm">عدد الطلبات الناجحة</span>
+                    <h3 id="kpiOrders" class="text-2xl font-bold text-gray-900 mt-2">0</h3>
+                    <span class="text-indigo-500 text-xs font-semibold mt-2">📦 طلبات مكتملة وقيد المعالجة</span>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                    <span class="text-gray-400 font-medium text-sm">متوسط قيمة الطلب (AOV)</span>
+                    <h3 id="kpiAOV" class="text-2xl font-bold text-gray-900 mt-2">$0.00</h3>
+                    <span class="text-amber-500 text-xs font-semibold mt-2">💡 معدل سلة الشراء للعميل</span>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                    <span class="text-gray-400 font-medium text-sm">متوسط مدة التوصيل</span>
+                    <h3 id="kpiDelivery" class="text-2xl font-bold text-gray-900 mt-2">0 يوم</h3>
+                    <span class="text-rose-500 text-xs font-semibold mt-2">🚚 من الشراء حتى العميل</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 lg:col-span-2">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">📈 اتجاه المبيعات الشهري (Sales Trend)</h3>
+                    <div class="relative h-80">
+                        <canvas id="salesTrendChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">💳 طرق الدفع المفضلة</h3>
+                    <div class="relative h-80 flex justify-center">
+                        <canvas id="paymentTypeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">🏆 أعلى 5 فئات منتجات تحقيقاً للعائدات</h3>
+                    <div class="relative h-80">
+                        <canvas id="topCategoriesChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">📅 أداء المبيعات حسب أيام الأسبوع</h3>
+                    <div class="relative h-80">
+                        <canvas id="weekdaySalesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="bg-gray-900 text-gray-400 text-center py-4 text-sm mt-10 border-t border-gray-800">
+            لوحة تحكم احترافية مدعومة بـ Chart.js & Tailwind CSS © 2026
+        </footer>
+    </div>
+
+    <script>
+        let charts = {};
+
+        // جلب البيانات تلقائياً فور تحميل الصفحة باستخدام رابط التحميل المباشر للملف الخاص بك
+        window.addEventListener('DOMContentLoaded', (event) => {
+            const directCsvUrl = "https://docs.google.com/uc?export=download&id=1Nlw0LYlTT2mbLSGMrgV6FqbFSUMnO_PW";
+            const alertBox = document.getElementById('uploadAlert');
+
+            Papa.parse(directCsvUrl, {
+                download: true,
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    processOlistData(results.data);
+                    alertBox.style.display = 'none'; // إخفاء الرسالة بنجاح التحميل
+                },
+                error: function(err) {
+                    alertBox.className = "bg-rose-50 border-r-4 border-rose-500 p-4 mb-6 rounded shadow-sm";
+                    alertBox.innerHTML = "<p class='text-rose-700 font-medium'>❌ فشل تحميل البيانات تلقائياً. تأكد من ضبط صلاحية مشاركة الملف في Google Drive لـ (Anyone with the link / أي شخص لديه الرابط).</p>";
+                    console.error(err);
+                }
+            });
+        });
+
+        function processOlistData(data) {
+            let totalSales = 0;
+            let totalOrders = data.length;
+            let totalDeliveryDays = 0;
+            let deliveryCount = 0;
+
+            let monthlySales = {};
+            let paymentTypes = {};
+            let categorySales = {};
+            let weekdaySales = { 'Monday': 0, 'Tuesday': 0, 'Wednesday': 0, 'Thursday': 0, 'Friday': 0, 'Saturday': 0, 'Sunday': 0 };
+
+            data.forEach(row => {
+                const price = row.price || 0;
+                totalSales += price;
+
+                if (row.delivery_days !== null && !isNaN(row.delivery_days)) {
+                    totalDeliveryDays += row.delivery_days;
+                    deliveryCount++;
+                }
+
+                if (row.month_name) {
+                    monthlySales[row.month_name] = (monthlySales[row.month_name] || 0) + price;
+                }
+
+                if (row.payment_type) {
+                    paymentTypes[row.payment_type] = (paymentTypes[row.payment_type] || 0) + 1;
+                }
+
+                if (row.product_category_name_english) {
+                    categorySales[row.product_category_name_english] = (categorySales[row.product_category_name_english] || 0) + price;
+                }
+
+                if (row.weekday && weekdaySales.hasOwnProperty(row.weekday)) {
+                    weekdaySales[row.weekday] += price;
+                }
+            });
+
+            const avgAOV = totalOrders > 0 ? (totalSales / totalOrders) : 0;
+            const avgDelivery = deliveryCount > 0 ? (totalDeliveryDays / deliveryCount) : 0;
+
+            document.getElementById('kpiSales').innerText = `$${totalSales.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('kpiOrders').innerText = totalOrders.toLocaleString();
+            document.getElementById('kpiAOV').innerText = `$${avgAOV.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('kpiDelivery').innerText = `${avgDelivery.toFixed(1)} يوم`;
+
+            updateSalesTrendChart(monthlySales);
+            updatePaymentTypeChart(paymentTypes);
+            updateTopCategoriesChart(categorySales);
+            updateWeekdaySalesChart(weekdaySales);
+        }
+
+        function updateSalesTrendChart(monthlySalesData) {
+            const labels = Object.keys(monthlySalesData);
+            const data = Object.values(monthlySalesData);
+            destroyChart('salesTrend');
+            const ctx = document.getElementById('salesTrendChart').getContext('2d');
+            charts['salesTrend'] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'المبيعات ($)',
+                        data: data,
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 3
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function updatePaymentTypeChart(paymentData) {
+            destroyChart('paymentType');
+            const ctx = document.getElementById('paymentTypeChart').getContext('2d');
+            charts['paymentType'] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(paymentData),
+                    datasets: [{
+                        data: Object.values(paymentData),
+                        backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function updateTopCategoriesChart(categoryData) {
+            const sortedCategories = Object.entries(categoryData)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            destroyChart('topCategories');
+            const ctx = document.getElementById('topCategoriesChart').getContext('2d');
+            charts['topCategories'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sortedCategories.map(item => item[0]),
+                    datasets: [{
+                        label: 'إجمالي العائدات ($)',
+                        data: sortedCategories.map(item => item[1]),
+                        backgroundColor: '#10b981'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function updateWeekdaySalesChart(weekdayData) {
+            const daysAr = { 'Monday': 'الإثنين', 'Tuesday': 'الثلاثاء', 'Wednesday': 'الأربعاء', 'Thursday': 'الخميس', 'Friday': 'الجمعة', 'Saturday': 'السبت', 'Sunday': 'الأحد' };
+            const labels = Object.keys(weekdayData).map(day => daysAr[day] || day);
+
+            destroyChart('weekdaySales');
+            const ctx = document.getElementById('weekdaySalesChart').getContext('2d');
+            charts['weekdaySales'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'حجم المبيعات حسب اليوم',
+                        data: Object.values(weekdayData),
+                        backgroundColor: '#f59e0b'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function destroyChart(chartKey) {
+            if (charts[chartKey]) { charts[chartKey].destroy(); }
+        }
+    </script>
+</body>
+</html>
