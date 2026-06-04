@@ -20,16 +20,22 @@
                 <h1 class="text-2xl font-bold">لوحة تحكم أداء المبيعات والتوصيل (Olist)</h1>
                 <p class="text-sm text-indigo-200 mt-1">تحليل ذكي ومباشر لبيانات التجارة الإلكترونية</p>
             </div>
-            <div class="text-xs bg-indigo-800 border border-indigo-700 px-3 py-1.5 rounded-lg text-indigo-100">
-                🔄 تحديث تلقائي ومباشر عبر السحابة
+            <div class="bg-indigo-800 p-2 rounded-lg border border-indigo-700 flex items-center gap-3">
+                <label class="block text-sm font-medium text-indigo-100">اختر ملف CSV للتحليل:</label>
+                <input type="file" id="csvFileInput" accept=".csv" class="text-sm text-gray-350
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-indigo-600 file:text-white
+                    hover:file:bg-indigo-700 cursor-pointer"/>
             </div>
         </header>
 
         <main class="flex-grow p-6 max-w-7xl mx-auto w-full">
             
-            <div id="uploadAlert" class="bg-amber-50 border-r-4 border-amber-500 p-4 mb-6 rounded shadow-sm">
+            <div id="uploadAlert" class="bg-blue-50 border-r-4 border-blue-500 p-4 mb-6 rounded shadow-sm">
                 <div class="flex items-center">
-                    <p class="text-amber-700 font-medium">⏳ جاري تحميل وتحليل بيانات Olist تلقائياً من Google Drive... يرجى الانتظار ثوانٍ معدودة.</p>
+                    <p class="text-blue-700 font-medium">يرجى رفع ملف <code class="bg-blue-100 px-1 rounded">olist_master_cleaned.csv</code> من أعلى اليسار لبدء معالجة البيانات وتحديث الـ Dashboard تلقائياً.</p>
                 </div>
             </div>
 
@@ -94,63 +100,70 @@
     </div>
 
     <script>
-        let charts = {};
+        let charts = {}; // لتخزين كائنات الرسومات البيانية لتحديثها لاحقاً
 
-        // جلب البيانات تلقائياً فور تحميل الصفحة باستخدام رابط التصدير المباشر للملف
-        window.addEventListener('DOMContentLoaded', (event) => {
-            // تحويل الرابط إلى رابط تحميل مباشر بصيغة CSV لتعمل مكتبة PapaParse بشكل سليم
-            const directCsvUrl = "https://drive.google.com/file/d/10odIifS_c-LVQYhyNCAl6jCx59AlgRBv/view?usp=sharing";
-            const alertBox = document.getElementById('uploadAlert');
+        document.getElementById('csvFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
 
-            Papa.parse(directCsvUrl, {
-                download: true,
+            // إخفاء رسالة التنبيه وإظهار حالة التحميل
+            document.getElementById('uploadAlert').style.display = 'none';
+
+            // استخدام PapaParse لقراءة الملف بصيغة كائنات JSON
+            Papa.parse(file, {
                 header: true,
                 dynamicTyping: true,
                 skipEmptyLines: true,
                 complete: function(results) {
                     processOlistData(results.data);
-                    alertBox.style.display = 'none'; // إخفاء الرسالة بنجاح التحميل
                 },
                 error: function(err) {
-                    alertBox.className = "bg-rose-50 border-r-4 border-rose-500 p-4 mb-6 rounded shadow-sm";
-                    alertBox.innerHTML = "<p class='text-rose-700 font-medium'>❌ فشل تحميل البيانات تلقائياً. تأكد من ضبط صلاحية مشاركة الملف في Google Drive لـ (Anyone with the link / أي شخص لديه الرابط).</p>";
+                    alert('حدث خطأ أثناء قراءة الملف، تأكد من سلامة صيغة الـ CSV');
                     console.error(err);
                 }
             });
         });
 
         function processOlistData(data) {
+            // 1. حساب الـ KPIs الرئيسية
             let totalSales = 0;
             let totalOrders = data.length;
             let totalDeliveryDays = 0;
             let deliveryCount = 0;
 
+            // كائنات تجميع البيانات للرسومات
             let monthlySales = {};
             let paymentTypes = {};
             let categorySales = {};
             let weekdaySales = { 'Monday': 0, 'Tuesday': 0, 'Wednesday': 0, 'Thursday': 0, 'Friday': 0, 'Saturday': 0, 'Sunday': 0 };
 
             data.forEach(row => {
+                // تجميع المبيعات (اعتماداً على سعر المنتج المسمى price أو payment_value)
                 const price = row.price || 0;
                 totalSales += price;
 
+                // تجميع أيام التوصيل
                 if (row.delivery_days !== null && !isNaN(row.delivery_days)) {
                     totalDeliveryDays += row.delivery_days;
                     deliveryCount++;
                 }
 
+                // التجميع حسب الشهر (month_name)
                 if (row.month_name) {
                     monthlySales[row.month_name] = (monthlySales[row.month_name] || 0) + price;
                 }
 
+                // التجميع حسب طريقة الدفع
                 if (row.payment_type) {
                     paymentTypes[row.payment_type] = (paymentTypes[row.payment_type] || 0) + 1;
                 }
 
+                // التجميع حسب فئة المنتج بالإنجليزية
                 if (row.product_category_name_english) {
                     categorySales[row.product_category_name_english] = (categorySales[row.product_category_name_english] || 0) + price;
                 }
 
+                // التجميع حسب أيام الأسبوع
                 if (row.weekday && weekdaySales.hasOwnProperty(row.weekday)) {
                     weekdaySales[row.weekday] += price;
                 }
@@ -159,21 +172,28 @@
             const avgAOV = totalOrders > 0 ? (totalSales / totalOrders) : 0;
             const avgDelivery = deliveryCount > 0 ? (totalDeliveryDays / deliveryCount) : 0;
 
+            // تحديث واجهة المستخدم بالأرقام المحسوبة
             document.getElementById('kpiSales').innerText = `$${totalSales.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             document.getElementById('kpiOrders').innerText = totalOrders.toLocaleString();
             document.getElementById('kpiAOV').innerText = `$${avgAOV.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             document.getElementById('kpiDelivery').innerText = `${avgDelivery.toFixed(1)} يوم`;
 
+            // 2. بناء وتحديث الرسومات البيانية
             updateSalesTrendChart(monthlySales);
             updatePaymentTypeChart(paymentTypes);
             updateTopCategoriesChart(categorySales);
             updateWeekdaySalesChart(weekdaySales);
         }
 
+        // --- دالات بناء الرسوم البيانية المحترفة ---
+
         function updateSalesTrendChart(monthlySalesData) {
+            // ترتيب الأشهر منطقياً لو وُجدت كاملة، أو أخذها كما هي
             const labels = Object.keys(monthlySalesData);
             const data = Object.values(monthlySalesData);
+
             destroyChart('salesTrend');
+
             const ctx = document.getElementById('salesTrendChart').getContext('2d');
             charts['salesTrend'] = new Chart(ctx, {
                 type: 'line',
@@ -210,6 +230,7 @@
         }
 
         function updateTopCategoriesChart(categoryData) {
+            // فرز أعلى 5 فئات مبيعاً
             const sortedCategories = Object.entries(categoryData)
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 5);
@@ -227,7 +248,7 @@
                     }]
                 },
                 options: {
-                    indexAxis: 'y',
+                    indexAxis: 'y', // لجعل الرسم البياني أفقي احترافي
                     responsive: true,
                     maintainAspectRatio: false
                 }
@@ -235,6 +256,7 @@
         }
 
         function updateWeekdaySalesChart(weekdayData) {
+            // خريطة ترجمة الأيام للعربية للعرض الاحترافي
             const daysAr = { 'Monday': 'الإثنين', 'Tuesday': 'الثلاثاء', 'Wednesday': 'الأربعاء', 'Thursday': 'الخميس', 'Friday': 'الجمعة', 'Saturday': 'السبت', 'Sunday': 'الأحد' };
             const labels = Object.keys(weekdayData).map(day => daysAr[day] || day);
 
@@ -254,8 +276,11 @@
             });
         }
 
+        // دالة لمنع تداخل الرسومات عند رفع ملف جديد
         function destroyChart(chartKey) {
-            if (charts[chartKey]) { charts[chartKey].destroy(); }
+            if (charts[chartKey]) {
+                charts[chartKey].destroy();
+            }
         }
     </script>
 </body>
