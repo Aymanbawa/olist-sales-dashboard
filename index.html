@@ -58,7 +58,7 @@
                 </div>
                 <!-- عدد الطلبات الناجحة -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                    <span class="text-gray-400 font-medium text-sm">عدد الطلبات الناجحة</span>
+                    <span class="text-gray-400 font-medium text-sm">إجمالي الطلبات</span>
                     <h3 id="kpiOrders" class="text-2xl font-bold text-gray-900 mt-2">0</h3>
                     <span class="text-indigo-500 text-xs font-semibold mt-2">📦 طلبات مكتملة وقيد المعالجة</span>
                 </div>
@@ -115,7 +115,7 @@
 
         <!-- الفوتر -->
         <footer class="bg-gray-900 text-gray-400 text-center py-4 text-sm mt-10 border-t border-gray-800">
-            لوحة تحكم احترافية مدعومة بـ Chart.js & Tailwind CSS © 2026
+            لوحة تحكم احترافية   © 2026
         </footer>
     </div>
 
@@ -150,80 +150,188 @@
         });
 
         function processOlistData(data) {
-            let totalSales = 0;
-            let totalOrders = data.length;
-            let totalDeliveryDays = 0;
-            let deliveryCount = 0;
 
-            let monthlySales = {};
-            let paymentTypes = {};
-            let categorySales = {};
-            let weekdaySales = { 'Monday': 0, 'Tuesday': 0, 'Wednesday': 0, 'Thursday': 0, 'Friday': 0, 'Saturday': 0, 'Sunday': 0 };
+    let totalSales = 0;
+    let totalDeliveryDays = 0;
+    let deliveryCount = 0;
 
-            data.forEach(row => {
-                const price = row.price || 0;
-                totalSales += price;
+    const uniqueOrders = new Set();
 
-                if (row.delivery_days !== null && !isNaN(row.delivery_days)) {
-                    totalDeliveryDays += row.delivery_days;
-                    deliveryCount++;
-                }
+    let monthlySales = {};
+    let paymentTypes = {};
+    let categorySales = {};
 
-                if (row.month_name) {
-                    monthlySales[row.month_name] = (monthlySales[row.month_name] || 0) + price;
-                }
+    let weekdaySales = {
+        Saturday: 0,
+        Sunday: 0,
+        Monday: 0,
+        Tuesday: 0,
+        Wednesday: 0,
+        Thursday: 0,
+        Friday: 0
+    };
 
-                if (row.payment_type) {
-                    paymentTypes[row.payment_type] = (paymentTypes[row.payment_type] || 0) + 1;
-                }
+    data.forEach(row => {
 
-                if (row.product_category_name_english) {
-                    categorySales[row.product_category_name_english] = (categorySales[row.product_category_name_english] || 0) + price;
-                }
+        const revenue =
+            Number(row.payment_value) ||
+            Number(row.price) ||
+            0;
 
-                if (row.weekday && weekdaySales.hasOwnProperty(row.weekday)) {
-                    weekdaySales[row.weekday] += price;
-                }
-            });
+        totalSales += revenue;
 
-            const avgAOV = totalOrders > 0 ? (totalSales / totalOrders) : 0;
-            const avgDelivery = deliveryCount > 0 ? (totalDeliveryDays / deliveryCount) : 0;
-
-            // تحديث المؤشرات بالأرقام المحسوبة
-            document.getElementById('kpiSales').innerText = `$${totalSales.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            document.getElementById('kpiOrders').innerText = totalOrders.toLocaleString();
-            document.getElementById('kpiAOV').innerText = `$${avgAOV.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            document.getElementById('kpiDelivery').innerText = `${avgDelivery.toFixed(1)} يوم`;
-
-            // بناء الرسوم البيانية التفاعلية الجديدة
-            updateSalesTrendChart(monthlySales);
-            updatePaymentTypeChart(paymentTypes);
-            updateTopCategoriesChart(categorySales);
-            updateWeekdaySalesChart(weekdaySales);
+        if (row.order_id) {
+            uniqueOrders.add(row.order_id);
         }
+
+        if (
+            row.delivery_days !== null &&
+            row.delivery_days !== '' &&
+            !isNaN(row.delivery_days)
+        ) {
+            totalDeliveryDays += Number(row.delivery_days);
+            deliveryCount++;
+        }
+
+        if (row.month_name) {
+            monthlySales[row.month_name] =
+                (monthlySales[row.month_name] || 0) + revenue;
+        }
+
+        if (row.payment_type) {
+            paymentTypes[row.payment_type] =
+                (paymentTypes[row.payment_type] || 0) + 1;
+        }
+
+        if (row.product_category_name_english) {
+            categorySales[row.product_category_name_english] =
+                (categorySales[row.product_category_name_english] || 0) + revenue;
+        }
+
+        if (
+            row.weekday &&
+            weekdaySales.hasOwnProperty(row.weekday)
+        ) {
+            weekdaySales[row.weekday] += revenue;
+        }
+    });
+
+    const totalOrders = uniqueOrders.size;
+
+    const avgAOV =
+        totalOrders > 0
+            ? totalSales / totalOrders
+            : 0;
+
+    const avgDelivery =
+        deliveryCount > 0
+            ? totalDeliveryDays / deliveryCount
+            : 0;
+
+    document.getElementById('kpiSales').innerText =
+        `$${totalSales.toLocaleString(undefined,{
+            minimumFractionDigits:2,
+            maximumFractionDigits:2
+        })}`;
+
+    document.getElementById('kpiOrders').innerText =
+        totalOrders.toLocaleString();
+
+    document.getElementById('kpiAOV').innerText =
+        `$${avgAOV.toLocaleString(undefined,{
+            minimumFractionDigits:2,
+            maximumFractionDigits:2
+        })}`;
+
+    document.getElementById('kpiDelivery').innerText =
+        `${avgDelivery.toFixed(1)} يوم`;
+
+    updateSalesTrendChart(monthlySales);
+    updatePaymentTypeChart(paymentTypes);
+    updateTopCategoriesChart(categorySales);
+    updateWeekdaySalesChart(weekdaySales);
+}
 
         function updateSalesTrendChart(monthlySalesData) {
-            const labels = Object.keys(monthlySalesData);
-            const data = Object.values(monthlySalesData);
-            destroyChart('salesTrend');
-            const ctx = document.getElementById('salesTrendChart').getContext('2d');
-            charts['salesTrend'] = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'المبيعات ($)',
-                        data: data,
-                        borderColor: '#4f46e5',
-                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                        fill: true,
-                        tension: 0.3,
-                        borderWidth: 3
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
+
+    const monthOrder = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December'
+    ];
+
+    const monthNamesAr = {
+        January:'يناير',
+        February:'فبراير',
+        March:'مارس',
+        April:'أبريل',
+        May:'مايو',
+        June:'يونيو',
+        July:'يوليو',
+        August:'أغسطس',
+        September:'سبتمبر',
+        October:'أكتوبر',
+        November:'نوفمبر',
+        December:'ديسمبر'
+    };
+
+    const labels = [];
+    const values = [];
+
+    monthOrder.forEach(month => {
+
+        if (monthlySalesData[month] !== undefined) {
+
+            labels.push(monthNamesAr[month]);
+            values.push(monthlySalesData[month]);
         }
+    });
+
+    destroyChart('salesTrend');
+
+    const ctx =
+        document.getElementById('salesTrendChart')
+        .getContext('2d');
+
+    charts['salesTrend'] = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'الإيرادات',
+                data: values,
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79,70,229,0.15)',
+                fill: true,
+                tension: 0.35,
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return '$' +
+                            context.raw.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
 
         function updatePaymentTypeChart(paymentData) {
             destroyChart('paymentType');
@@ -267,24 +375,65 @@
         }
 
         function updateWeekdaySalesChart(weekdayData) {
-            const daysAr = { 'Monday': 'الإثنين', 'Tuesday': 'الثلاثاء', 'Wednesday': 'الأربعاء', 'Thursday': 'الخميس', 'Friday': 'الجمعة', 'Saturday': 'السبت', 'Sunday': 'الأحد' };
-            const labels = Object.keys(weekdayData).map(day => daysAr[day] || day);
 
-            destroyChart('weekdaySales');
-            const ctx = document.getElementById('weekdaySalesChart').getContext('2d');
-            charts['weekdaySales'] = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'حجم المبيعات ($)',
-                        data: Object.values(weekdayData),
-                        backgroundColor: '#f59e0b'
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
+    const dayOrder = [
+        'Saturday',
+        'Sunday',
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday'
+    ];
+
+    const daysAr = {
+        Saturday:'السبت',
+        Sunday:'الأحد',
+        Monday:'الإثنين',
+        Tuesday:'الثلاثاء',
+        Wednesday:'الأربعاء',
+        Thursday:'الخميس',
+        Friday:'الجمعة'
+    };
+
+    const labels =
+        dayOrder.map(day => daysAr[day]);
+
+    const values =
+        dayOrder.map(day => weekdayData[day] || 0);
+
+    destroyChart('weekdaySales');
+
+    const ctx =
+        document.getElementById('weekdaySalesChart')
+        .getContext('2d');
+
+    charts['weekdaySales'] = new Chart(ctx,{
+        type:'bar',
+        data:{
+            labels:labels,
+            datasets:[{
+                label:'الإيرادات حسب اليوم',
+                data:values,
+                backgroundColor:'#f59e0b'
+            }]
+        },
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            plugins:{
+                tooltip:{
+                    callbacks:{
+                        label:function(context){
+                            return '$' +
+                            context.raw.toLocaleString();
+                        }
+                    }
+                }
+            }
         }
+    });
+}
 
         function destroyChart(chartKey) {
             if (charts[chartKey]) { charts[chartKey].destroy(); }
